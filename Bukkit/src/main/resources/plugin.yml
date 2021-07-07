@@ -1,0 +1,7 @@
+name: Unite
+version: 1.0
+author: Nuplex Development
+description: Ranks, Punishments, and More.
+main: cc.nuplex.unite.bukkit.UniteBukkitPlugin
+depend:
+  - Engine
