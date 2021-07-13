@@ -1,40 +1,50 @@
 package cc.nuplex.unite.bukkit;
 
 import cc.nuplex.engine.Engine;
+import cc.nuplex.engine.storage.cache.uuid.UUIDCache;
+import cc.nuplex.engine.storage.mongo.Mongo;
 import cc.nuplex.unite.Unite;
-import cc.nuplex.unite.bukkit.listeners.ConnectionListeners;
-import cc.nuplex.unite.profile.Profile;
-import cc.nuplex.unite.profile.ProfileHandler;
+import cc.nuplex.unite.bukkit.listener.ConnectionListeners;
+
+import cc.nuplex.unite.plugin.KeepAliveRunnable;
+import cc.nuplex.unite.plugin.Plugin;
+import cc.nuplex.unite.plugin.RefreshRunnable;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.logging.Logger;
-
-public class UniteBukkitPlugin extends JavaPlugin {
-
-    private final Logger logger = getLogger();
+public class UniteBukkitPlugin extends JavaPlugin implements Plugin {
 
     @Override
     public void onEnable() {
-        new Unite(Engine.getInstance().getMongo(), Engine.getInstance().getUuidCache());
+        new Unite(this);
 
-        this.loadListeners();
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, new KeepAliveRunnable(), 0, 20  * 5);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, new RefreshRunnable(), 0, 20 * 60);
+
+        Bukkit.getPluginManager().registerEvents(new ConnectionListeners(), this);
     }
 
     @Override
-    public void onDisable() {
-        ProfileHandler profileHandler = Unite.getInstance().getProfileHandler();
+    public void onDisable() { }
 
-        for (Profile profile : profileHandler.getProfiles()) {
-            profileHandler.save(profile);
-            profileHandler.removeEntry(profile.getUniqueId());
-        }
+    @Override
+    public Mongo getMongo() {
+        return Engine.getInstance().getMongo();
     }
 
-    private void loadListeners() {
-        Bukkit.getPluginManager().registerEvents(new ConnectionListeners(), this);
+    @Override
+    public UUIDCache getUUIDCache() {
+        return Engine.getInstance().getUuidCache();
+    }
 
-        logger.info("Loaded listeners.");
+    @Override
+    public String getApiHost() {
+        return "http://localhost:90";
+    }
+
+    @Override
+    public void shutdown() {
+        Bukkit.shutdown();
     }
 
 }

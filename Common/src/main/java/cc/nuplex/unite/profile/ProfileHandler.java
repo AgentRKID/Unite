@@ -1,88 +1,55 @@
 package cc.nuplex.unite.profile;
 
-import cc.nuplex.engine.storage.cache.uuid.UUIDCache;
-import cc.nuplex.engine.storage.mongo.Mongo;
-import cc.nuplex.engine.util.Handler;
+import cc.nuplex.engine.serializers.Serializers;
+import cc.nuplex.engine.util.http.HttpHandler;
 import cc.nuplex.unite.Unite;
-import cc.nuplex.unite.utils.MongoUtils;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
-import org.bson.Document;
+import com.google.common.collect.ImmutableMap;
 
-import java.util.*;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class ProfileHandler implements Handler<Profile> {
+public class ProfileHandler {
 
-    private final Map<UUID, Profile> profileMap = new HashMap<>();
-    private final MongoCollection<Document> collection;
-    private final UUIDCache uuidCache;
+    private final Map<UUID, Profile> profileMap = new ConcurrentHashMap<>();
 
-    public ProfileHandler(Mongo mongo, UUIDCache uuidCache) {
-        this.uuidCache = uuidCache;
-
-        this.collection = mongo.getClient().getDatabase("Unite").getCollection("profiles");
-    }
-
-    @Override
     public void load(Profile profile) {
-        Document document = this.collection.find(Filters.eq("uuid", profile.getUniqueId().toString())).first();
+        HttpHandler.get(Unite.getInstance().getPlugin().getApiHost() + "/profile/" + profile.getUniqueId(),
+                ImmutableMap.of("username", profile.getUsername()), (response, code) -> {
+            if (response == null || response.isJsonNull()) {
+                return;
+            }
 
-        if (document == null) {
-            return;
-        }
-        // TODO: Load other things
-    }
+            Profile other = Serializers.GSON.fromJson(response.getAsJsonObject(), Profile.class);
 
-    @Override
-    public void save(Profile profile) {
-        Unite.EXECUTOR.execute(
-                () -> this.collection.replaceOne(Filters.eq("uuid", profile.getUniqueId().toString()), profile.toDocument(), MongoUtils.UPSERT_OPTIONS)
-        );
+            if (other != null) {
+                profile.update(other);
+                profile.setLastUpdateSuccessful(true);
+            }
+        });
     }
 
     public void addEntry(Profile profile) {
         this.profileMap.put(profile.getUniqueId(), profile);
     }
 
-    public void removeEntry(UUID uuid) {
-        this.profileMap.remove(uuid);
+    public void removeEntry(Profile profile) {
+        this.profileMap.remove(profile.getUniqueId());
     }
 
-    public boolean isCached(UUID uuid) {
-        return this.profileMap.containsKey(uuid);
-    }
-
-    public Collection<Profile> getProfiles() {
-        return this.profileMap.values();
-    }
-
-    public Profile getProfile(UUID uuid, boolean find) {
+    public Profile get(UUID uuid, boolean load) {
         Profile profile = this.profileMap.get(uuid);
 
         if (profile != null) {
             return profile;
         }
 
-        if (find) {
-            if (this.uuidCache.isCached(uuid)) {
-                return new Profile(uuid, this.uuidCache.name(uuid));
-            }
-        }
-        return null;
-    }
+        if (load) {
+            profile = new Profile(uuid, Unite.getInstance().getPlugin().getUUIDCache().name(uuid));
+            this.load(profile);
 
-    public Profile getProfile(String username, boolean find) {
-        Profile profile = this.profileMap.values().stream().filter(stream -> stream.getUsername().equals(username)).findFirst().orElse(null);
-
-        if (profile != null) {
-            return profile;
-        }
-
-        if (find) {
-            UUID uuid = this.uuidCache.uuid(username);
-
-            if (uuid != null) {
-                return new Profile(uuid, username);
+            if (profile.wasLastUpdateSuccessful()) {
+                return profile;
             }
         }
         return null;
