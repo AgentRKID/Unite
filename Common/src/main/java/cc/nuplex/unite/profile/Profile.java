@@ -1,26 +1,26 @@
 package cc.nuplex.unite.profile;
 
 import lombok.Getter;
-import org.bson.Document;
+import lombok.Setter;
 
 import java.util.UUID;
 
 public class Profile {
 
-    @Getter private final UUID uniqueId;
-    @Getter private final String username;
+    @Getter private final transient UUID uniqueId;
+    @Getter private final transient String username;
+
+    @Setter private transient boolean lastUpdateSuccessful;
 
     public Profile(UUID uniqueId, String username) {
         this.uniqueId = uniqueId;
         this.username = username;
     }
 
-    public Document toDocument() {
-        Document document = new Document();
+    public void update(Profile other) {}
 
-        document.put("uuid", uniqueId.toString());
-        document.put("username", username);
-
-        return document;
+    public boolean wasLastUpdateSuccessful() {
+        return this.lastUpdateSuccessful;
     }
+
 }
