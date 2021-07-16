@@ -3,6 +3,7 @@ package cc.nuplex.unite.profile;
 import cc.nuplex.engine.serializers.Serializers;
 import cc.nuplex.engine.util.http.HttpHandler;
 import cc.nuplex.unite.Unite;
+import cc.nuplex.unite.UniteGeneral;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
@@ -14,7 +15,7 @@ public class ProfileHandler {
     private final Map<UUID, Profile> profileMap = new ConcurrentHashMap<>();
 
     public void load(Profile profile) {
-        HttpHandler.get(Unite.getInstance().getPlugin().getApiHost() + "/profile/" + profile.getUniqueId(),
+        HttpHandler.get(UniteGeneral.getPlugin().getApiHost() + "/profile/" + profile.getUniqueId(),
                 ImmutableMap.of("username", profile.getUsername()), (response, code) -> {
             if (response == null || response.isJsonNull()) {
                 return;
@@ -46,8 +47,15 @@ public class ProfileHandler {
 
         if (load) {
             profile = new Profile(uuid, Unite.getInstance().getPlugin().getUUIDCache().name(uuid));
+
+            // Send API Request/Load
+            // the profile from the web
             this.load(profile);
 
+            // Makes sure the request
+            // was successful
+            // before giving back a
+            // profile which might not be correct
             if (profile.wasLastUpdateSuccessful()) {
                 return profile;
             }
