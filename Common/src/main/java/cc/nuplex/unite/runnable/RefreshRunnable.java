@@ -1,4 +1,4 @@
-package cc.nuplex.unite.plugin;
+package cc.nuplex.unite.runnable;
 
 public class RefreshRunnable implements Runnable {
 
