@@ -10,15 +10,15 @@ public class KeepAliveRunnable implements Runnable {
     public void run() {
         HttpHandler.get(UniteGeneral.getPlugin().getApiHost() + "/status", null, (response, code) -> {
             if (response == null || response.isJsonNull()) {
-                Unite.getInstance().getPlugin().shutdown();
+                UniteGeneral.getPlugin().shutdown();
                 return;
             }
 
             if (!response.getAsJsonObject().get("success").getAsBoolean()) {
-                Unite.getInstance().getPlugin().shutdown();
+                UniteGeneral.getPlugin().shutdown();
                 return;
             }
-            Unite.getInstance().getPlugin().getLogger().info("API Server is still up and alive!");
+            UniteGeneral.getPlugin().getLogger().info("API Server is still up and alive!");
         });
     }
 

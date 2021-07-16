@@ -46,7 +46,7 @@ public class ProfileHandler {
         }
 
         if (load) {
-            profile = new Profile(uuid, Unite.getInstance().getPlugin().getUUIDCache().name(uuid));
+            profile = new Profile(uuid, UniteGeneral.getPlugin().getUUIDCache().name(uuid));
 
             // Send API Request/Load
             // the profile from the web
