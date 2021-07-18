@@ -1,8 +1,7 @@
 package cc.nuplex.unite.profile;
 
+import cc.nuplex.api.common.RankType;
 import cc.nuplex.engine.util.http.HttpHandler;
-import cc.nuplex.unite.Unite;
-import cc.nuplex.unite.UniteGeneral;
 import cc.nuplex.unite.util.Used;
 import com.google.gson.JsonElement;
 import lombok.Getter;
@@ -14,17 +13,19 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Profile {
 
-    @Getter private UUID uniqueId;
-    @Getter private String username;
+    @Getter private UUID uuid;
+    @Getter @Setter private String username;
 
-    @Getter @Setter private Map<String, Boolean> settings = new HashMap<>();
-    @Getter @Setter private Set<String> ignored = new HashSet<>();
+    @Getter @Setter private RankType rankType = RankType.DEFAULT;
+
+    @Getter private Map<String, Boolean> settings = new HashMap<>();
+    @Getter private Set<String> ignored = new HashSet<>();
 
     @Setter private transient boolean lastUpdateSuccessful;
 
-    @ConstructorProperties({ "uniqueId", "username" })
-    public Profile(UUID uniqueId, String username) {
-        this.uniqueId = uniqueId;
+    @ConstructorProperties({ "uuid", "username" })
+    public Profile(UUID uuid, String username) {
+        this.uuid = uuid;
         this.username = username;
     }
 
@@ -32,6 +33,7 @@ public class Profile {
     public Profile() {}
 
     public void update(Profile other) {
+        this.rankType = other.rankType;
         this.settings = other.settings;
         this.ignored = other.ignored;
     }
@@ -44,6 +46,10 @@ public class Profile {
         this.settings.remove(setting.name());
     }
 
+    public boolean hasSetting(Enum<?> setting) {
+        return this.settings.containsKey(setting.name());
+    }
+
     public boolean isSettingEnabled(Enum<?> setting) {
         return this.settings.getOrDefault(setting.name(), false);
     }
@@ -52,8 +58,7 @@ public class Profile {
         AtomicReference<JsonElement> reference = new AtomicReference<>();
 
         if (post) {
-            HttpHandler.post(UniteGeneral.getPlugin().getApiHost() + "/profile/" + this.uniqueId.toString(),
-                    null, null, bodyOrParams, (response, code) -> {
+            HttpHandler.post(endpoint, null, null, bodyOrParams, (response, code) -> {
                 if (response == null || !response.isJsonNull()) {
                     return;
                 }

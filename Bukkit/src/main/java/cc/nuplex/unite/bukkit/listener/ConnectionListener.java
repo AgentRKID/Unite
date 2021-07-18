@@ -2,14 +2,16 @@ package cc.nuplex.unite.bukkit.listener;
 
 import cc.nuplex.engine.util.bukkit.CC;
 import cc.nuplex.unite.Unite;
+import cc.nuplex.unite.bukkit.setting.UniteSettings;
 import cc.nuplex.unite.profile.Profile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class ConnectionListeners implements Listener {
+public class ConnectionListener implements Listener {
 
     @EventHandler(priority=EventPriority.LOWEST)
     public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {

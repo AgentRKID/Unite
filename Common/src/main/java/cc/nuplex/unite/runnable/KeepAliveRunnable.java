@@ -1,10 +1,11 @@
 package cc.nuplex.unite.runnable;
 
 import cc.nuplex.engine.util.http.HttpHandler;
-import cc.nuplex.unite.Unite;
 import cc.nuplex.unite.UniteGeneral;
 
 public class KeepAliveRunnable implements Runnable {
+
+    private int keepAliveId = 0;
 
     @Override
     public void run() {
@@ -18,6 +19,7 @@ public class KeepAliveRunnable implements Runnable {
                 UniteGeneral.getPlugin().shutdown();
                 return;
             }
+            UniteGeneral.getPlugin().onKeepAlive(keepAliveId++);
             UniteGeneral.getPlugin().getLogger().info("API Server is still up and alive!");
         });
     }

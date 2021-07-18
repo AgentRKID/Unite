@@ -2,11 +2,12 @@ package cc.nuplex.unite.profile;
 
 import cc.nuplex.engine.serializers.Serializers;
 import cc.nuplex.engine.util.http.HttpHandler;
-import cc.nuplex.unite.Unite;
 import cc.nuplex.unite.UniteGeneral;
 import com.google.common.collect.ImmutableMap;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,7 +16,7 @@ public class ProfileHandler {
     private final Map<UUID, Profile> profileMap = new ConcurrentHashMap<>();
 
     public void load(Profile profile) {
-        HttpHandler.get(UniteGeneral.getPlugin().getApiHost() + "/profile/" + profile.getUniqueId(),
+        HttpHandler.get(UniteGeneral.getPlugin().getApiHost() + "/profile/" + profile.getUuid(),
                 ImmutableMap.of("username", profile.getUsername()), (response, code) -> {
             if (response == null || response.isJsonNull()) {
                 return;
@@ -31,11 +32,11 @@ public class ProfileHandler {
     }
 
     public void addEntry(Profile profile) {
-        this.profileMap.put(profile.getUniqueId(), profile);
+        this.profileMap.put(profile.getUuid(), profile);
     }
 
     public void removeEntry(Profile profile) {
-        this.profileMap.remove(profile.getUniqueId());
+        this.profileMap.remove(profile.getUuid());
     }
 
     public Profile get(UUID uuid, boolean load) {
@@ -61,6 +62,10 @@ public class ProfileHandler {
             }
         }
         return null;
+    }
+
+    public Collection<Profile> getProfiles() {
+        return this.profileMap.values();
     }
 
 }

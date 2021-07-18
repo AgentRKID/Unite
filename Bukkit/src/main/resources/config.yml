@@ -1,0 +1,3 @@
+settings:
+  handle-chat: true
+  api-host: 'https://localhost:90'

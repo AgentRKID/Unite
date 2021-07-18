@@ -13,8 +13,10 @@ public interface Plugin {
 
     UUIDCache getUUIDCache();
 
-    String getApiHost();
+    default String getApiHost() { return "https://localhost:90"; }
 
-    void shutdown();
+    default void onKeepAlive(int keepAliveId) {}
+
+    default void shutdown() {}
 
 }
