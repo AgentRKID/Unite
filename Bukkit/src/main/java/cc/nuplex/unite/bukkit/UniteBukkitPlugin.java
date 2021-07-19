@@ -24,9 +24,15 @@ public class UniteBukkitPlugin extends JavaPlugin implements Plugin {
     public void onEnable() {
         instance = this;
 
+        // Run this before starting Unite, this for sure
+        // lets us know if the API is down or not.
+        KeepAliveRunnable keepAlive = new KeepAliveRunnable();
+        keepAlive.run();
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, keepAlive, 0, 20  * 5);
+
         new Unite(this);
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, new KeepAliveRunnable(), 0, 20  * 5);
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, new RefreshRunnable(), 0, 20 * 60);
 
         CommandHandler.registerAll(this);
