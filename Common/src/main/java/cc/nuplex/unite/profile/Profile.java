@@ -2,6 +2,7 @@ package cc.nuplex.unite.profile;
 
 import cc.nuplex.api.common.RankType;
 import cc.nuplex.engine.util.http.HttpHandler;
+import cc.nuplex.unite.UniteGeneral;
 import cc.nuplex.unite.util.Used;
 import com.google.gson.JsonElement;
 import lombok.Getter;
@@ -40,6 +41,7 @@ public class Profile {
 
     public void saveSetting(Enum<?> setting, boolean value) {
         this.settings.put(setting.name(), value);
+        this.save();
     }
 
     public void removeSetting(Enum<?> setting) {
@@ -54,26 +56,27 @@ public class Profile {
         return this.settings.getOrDefault(setting.name(), false);
     }
 
-    public JsonElement createRequest(String endpoint, Map<Object, Object> bodyOrParams, boolean post) {
+    public void save() {
+        JsonElement element = this.createPostRequest(UniteGeneral.getPlugin().getApiHost() + "/profile/"
+                + this.uuid.toString() + "/save", this);
+
+        if (element == null || element.isJsonNull()) {
+            UniteGeneral.getPlugin().getLogger().info("Failed to save " + this.username + "'s profile.");
+            return;
+        }
+        UniteGeneral.getPlugin().getLogger().info("Saved " + this.username + "'s profile.");
+    }
+
+    public JsonElement createPostRequest(String endpoint, Object bodyOrParams) {
         AtomicReference<JsonElement> reference = new AtomicReference<>();
 
-        if (post) {
-            HttpHandler.post(endpoint, null, null, bodyOrParams, (response, code) -> {
-                if (response == null || !response.isJsonNull()) {
-                    return;
-                }
+        HttpHandler.post(endpoint, null, bodyOrParams, (response, code) -> {
+            if (response == null || !response.isJsonNull()) {
+                return;
+            }
+            reference.set(response);
+        });
 
-                reference.set(response);
-            });
-        } else {
-            HttpHandler.get(endpoint, bodyOrParams, (response, code) -> {
-                if (response == null || !response.isJsonNull()) {
-                    return;
-                }
-
-                reference.set(response);
-            });
-        }
         return reference.get();
     }
 
